@@ -10,18 +10,37 @@ pub use crate::{
     params::TopHeadlinesParams,
 };
 
-const BASE_URL: &str = "https://newsapi.org/v2/";
+#[derive(Debug, Clone, Copy)]
+pub enum Version {
+    V2,
+}
+
+impl Version {
+    fn path(&self) -> &'static str {
+        match self {
+            Version::V2 => "/v2",
+        }
+    }
+}
 
 #[derive(Debug)]
 pub struct NewsApiClient {
     api_key: String,
+    base_url: String,
     http: HttpClient,
 }
 
 impl NewsApiClient {
+    const BASE_URL: &str = "https://newsapi.org";
+
     pub fn new(api_key: impl Into<String>) -> Self {
+        Self::with_version(api_key, Version::V2)
+    }
+
+    pub fn with_version(api_key: impl Into<String>, version: Version) -> Self {
         Self {
             api_key: api_key.into(),
+            base_url: format!("{}{}", Self::BASE_URL, version.path()),
             http: HttpClient::new(),
         }
     }
@@ -71,7 +90,7 @@ impl NewsApiClient {
             query.push(("pageSize", page_size.to_string()));
         }
 
-        let url = format!("{}/top-headlines", BASE_URL);
+        let url = format!("{}/top-headlines", self.base_url);
         let response = self.http.get(&url).query(&query).send().await?;
 
         self.handle_response(response).await
