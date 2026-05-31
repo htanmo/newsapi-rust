@@ -1,4 +1,4 @@
-# newsapi-rs
+# newsapi-rust
 
 A robust, async Rust client for the [NewsAPI.org](https://newsapi.org/) news aggregator API.
 
@@ -12,12 +12,12 @@ This library provides a type-safe, async interface to all NewsAPI v2 endpoints:
 Add to your `Cargo.toml`.
 ```toml
 [dependencies]
-newsapi-rs = "0.1"
+newsapi-rust = "0.1"
 tokio = { version = "1.0", features = ["full"] }
 ```
 Then:
 ```rs
-use newsapi_rs::{NewsApiClient, ApiVersion};
+use newsapi_rust::{NewsApiClient, ApiVersion};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

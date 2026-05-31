@@ -1,4 +1,4 @@
-//! # newsapi-rs
+//! # newsapi-rust
 //!
 //! A robust, async Rust client for the [NewsAPI.org](https://newsapi.org/) news aggregator API.
 //!
@@ -12,13 +12,13 @@
 //! Add to your `Cargo.toml`
 //! ```toml
 //! [dependencies]
-//! newsapi-rs = "0.1"
+//! newsapi-rust = "0.1"
 //! tokio = { version = "1.0", features = ["full"] }
 //! ```
 //!
 //! Then:
 //! ```no_run
-//! use newsapi_rs::{NewsApiClient, ApiVersion};
+//! use newsapi_rust::{NewsApiClient, ApiVersion};
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -35,8 +35,8 @@
 //! ```
 
 // Ensure all public items are documented
-// #![deny(missing_docs)]
-#![doc(html_root_url = "https://docs.rs/newsapi-rs/0.1.0")]
+#![deny(missing_docs)]
+#![doc(html_root_url = "https://docs.rs/newsapi-rust/0.1.0")]
 
 mod client;
 mod error;

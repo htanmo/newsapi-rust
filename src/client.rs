@@ -1,3 +1,5 @@
+//! The main client for interacting with NewsAPI.
+
 use std::time::Duration;
 
 use reqwest::Client as HttpClient;
@@ -6,32 +8,30 @@ pub use crate::{
     error::{NewsApiError, Result},
     models::{ApiResponse, SourceDetail, SourcesResponse, SuccessResponse},
     params::{EverythingParams, SourceParams, TopHeadlinesParams},
+    version::ApiVersion,
 };
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub enum ApiVersion {
-    #[default]
-    V2,
-}
-
-impl ApiVersion {
-    fn path(&self) -> &'static str {
-        match self {
-            ApiVersion::V2 => "/v2",
-        }
-    }
-}
-
-impl std::fmt::Display for ApiVersion {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            ApiVersion::V2 => write!(f, "v2"),
-        }
-    }
-}
 
 const BASE_URL: &str = "https://newsapi.org";
 
+/// The main NewsAPI client.
+///
+/// Holds your API key, HTTP client configuration, and provides methods for all API endpoints.
+/// All methods are asynchronous and must be `await`ed.
+///
+/// # Examples
+/// ```no_run
+/// use newsapi_rust::{NewsApiClient, TopHeadlinesParams};
+///
+/// #[tokio::main]
+/// async fn main() -> Result<(), Box<dyn std::error::Error>> {
+///     let client = NewsApiClient::new("YOUR_API_KEY");
+///     let params = TopHeadlinesParams::new().country("us").category("technology");
+///     let headlines = client.top_headlines(&params).await?;
+///     for article in headlines.articles {
+///         println!("{} - {}", article.title, article.url);
+///     }
+///     Ok(())
+/// }
 #[derive(Debug, Clone)]
 pub struct NewsApiClient {
     api_key: String,
@@ -41,10 +41,14 @@ pub struct NewsApiClient {
 }
 
 impl NewsApiClient {
+    /// Create a new NewsApiClient with the given API key.
+    ///
+    /// Uses default settings for timeout (30 seconds) and API version (v2).
     pub fn new(api_key: impl Into<String>) -> Self {
         Self::with_config(api_key, Duration::from_secs(30), ApiVersion::default())
     }
 
+    /// Create a new NewsApiClient with custom configuration.
     pub fn with_config(api_key: impl Into<String>, timeout: Duration, version: ApiVersion) -> Self {
         let http = HttpClient::builder()
             .timeout(timeout)
@@ -59,22 +63,27 @@ impl NewsApiClient {
         }
     }
 
+    /// Create a new NewsApiClient with a custom timeout.
     pub fn with_timeout(api_key: impl Into<String>, timeout: Duration) -> Self {
         Self::with_config(api_key, timeout, ApiVersion::V2)
     }
 
+    /// Create a new NewsApiClient with a specific API version.
     pub fn with_version(api_key: impl Into<String>, version: ApiVersion) -> Self {
         Self::with_config(api_key, Duration::from_secs(30), version)
     }
 
+    /// Set the API version for this client.
     pub fn set_version(&mut self, version: ApiVersion) {
         self.version = version;
     }
 
+    /// Get the current API version.
     pub fn version(&self) -> ApiVersion {
         self.version
     }
 
+    /// Set the timeout for HTTP requests. Rebuilds the internal HTTP client with the new timeout.
     pub fn set_timeout(&mut self, timeout: Duration) -> Result<()> {
         let new_http = HttpClient::builder()
             .timeout(timeout)
@@ -85,10 +94,12 @@ impl NewsApiClient {
         Ok(())
     }
 
+    // Helper method to build the full URL for a given endpoint
     fn build_url(&self, endpoint: &str) -> String {
         format!("{}{}/{}", BASE_URL, self.version.path(), endpoint)
     }
 
+    // Helper method to execute a request with error handling
     async fn execute_request(
         &self,
         request: reqwest::RequestBuilder,
@@ -109,6 +120,7 @@ impl NewsApiClient {
         })
     }
 
+    // Helper method to handle API responses and convert them into SuccessResponse or NewsApiError
     async fn handle_response(&self, response: reqwest::Response) -> Result<SuccessResponse> {
         let body = response.bytes().await?;
         let api_response: ApiResponse = serde_json::from_slice(&body)?;
@@ -132,10 +144,25 @@ impl NewsApiClient {
         }
     }
 
+    /// Fetch top headlines using `/top-headlines` endpoint with the given parameters.
+    ///
+    /// # Arguments
+    /// * `params` - A reference to `TopHeadlinesParams` containing the query parameters.
+    ///
+    /// # Returns
+    /// A `Result` containing `SuccessResponse` on success or `NewsApiError` on failure.
     pub async fn top_headlines(&self, params: &TopHeadlinesParams) -> Result<SuccessResponse> {
         self.top_headlines_with_timeout(params, None).await
     }
 
+    /// Fetch top headlines using `/top-headlines` endpoint with the given parameters and an optional timeout.
+    ///
+    /// # Arguments
+    /// * `params` - A reference to `TopHeadlinesParams` containing the query parameters.
+    /// * `timeout` - An optional `Duration` specifying the timeout for the request.
+    ///
+    /// # Returns
+    /// A `Result` containing `SuccessResponse` on success or `NewsApiError` on failure.
     pub async fn top_headlines_with_timeout(
         &self,
         params: &TopHeadlinesParams,
@@ -173,10 +200,25 @@ impl NewsApiClient {
         self.handle_response(response).await
     }
 
+    /// Fetch all articles using the `/everything` endpoint with the given parameters.
+    ///
+    /// # Arguments
+    /// * `params` - A reference to `EverythingParams` containing the query parameters.
+    ///
+    /// # Returns
+    /// A `Result` containing `SuccessResponse` on success or `NewsApiError` on failure.
     pub async fn everything(&self, params: &EverythingParams) -> Result<SuccessResponse> {
         self.everything_with_timeout(params, None).await
     }
 
+    /// Fetch all articles using the `/everything` endpoint with the given parameters and an optional timeout.
+    ///
+    /// # Arguments
+    /// * `params` - A reference to `EverythingParams` containing the query parameters.
+    /// * `timeout` - An optional `Duration` specifying the timeout for the request.
+    ///
+    /// # Returns
+    /// A `Result` containing `SuccessResponse` on success or `NewsApiError` on failure.
     pub async fn everything_with_timeout(
         &self,
         params: &EverythingParams,
@@ -229,10 +271,25 @@ impl NewsApiClient {
         self.handle_response(response).await
     }
 
+    /// Fetch news sources using the `/sources` endpoint with the given parameters.
+    ///
+    /// # Arguments
+    /// * `params` - A reference to `SourceParams` containing the query parameters.
+    ///
+    /// # Returns
+    /// A `Result` containing a vector of `SourceDetail` on success or `NewsApiError` on failure.
     pub async fn sources(&self, params: &SourceParams) -> Result<Vec<SourceDetail>> {
         self.sources_with_timeout(params, None).await
     }
 
+    /// Fetch news sources using the `/sources` endpoint with the given parameters and an optional timeout.
+    ///
+    /// # Arguments
+    /// * `params` - A reference to `SourceParams` containing the query parameters.
+    /// * `timeout` - An optional `Duration` specifying the timeout for the request.
+    ///
+    /// # Returns
+    /// A `Result` containing a vector of `SourceDetail` on success or `NewsApiError` on failure.
     pub async fn sources_with_timeout(
         &self,
         params: &SourceParams,
