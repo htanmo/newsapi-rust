@@ -1,16 +1,17 @@
 [package]
-name = "newsapi-rs"
+name = "newsapi-rust"
 version = "0.1.0"
 edition = "2024"
 authors = ["Omnath Mandal omnathwk@gmail.com"]
 description = "A robust async client for NewsAPI.org"
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/htanmo/newsapi-rs"
+repository = "https://github.com/htanmo/newsapi-rust"
 readme = "README.md"
 keywords = ["newsapi", "news", "api", "client", "async", "rust"]
 categories = ["web-programming", "api-bindings"]
-documentation = "https://docs.rs/newsapi-rs"
-homepage = "https://github.com/htanmo/newsapi-rs"
+documentation = "https://docs.rs/newsapi-rust"
+homepage = "https://github.com/htanmo/newsapi-rust"
+include = ["src/", "LICENSE", "README.md"]
 
 [dependencies]
 chrono = { version = "0.4.44", features = ["serde"] }

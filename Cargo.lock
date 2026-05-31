@@ -670,7 +670,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "newsapi-rs"
+name = "newsapi-rust"
 version = "0.1.0"
 dependencies = [
  "chrono",
